@@ -1,4 +1,5 @@
 #conducted at 523K (250 C)
+
 import numpy as np
 from scipy.integrate import odeint
 %matplotlib inline
@@ -29,42 +30,56 @@ def HTL (x, t):
     kr4 = kvals[3]
     kr5 = kvals[4]
     
-    #1 = glycine, 6, = imine, 8 = hydroacetic acid, 9 = acetic acid, 10 = methamine, 11 = tetrahydropyradine
-    d1dt = -(kr1+kr3+kr4+kr5)*x[0]
-    
-    d6dt = (kr1)*x[0] - (kr2)*x[1]
-    
-    d8dt = (kr3)*x[0]
-    
-    d9dt = (kr4)*x[0]
-    
-    d10dt = (kr5)*x[0]
-    
-    d11dt = (kr2)*x[1]
+    #1-10 for glycine, hydrogen, water, ammonia, carbon dioxide, imine, diene, hydroxyacetic acid, acetic acid, methanamine, tetrahydropyridine (N-heterocycle) respectively 
+
+    d1dt = -(kr1)*x[0]*x[1]-(kr3+kr4)*x[0]*x[3]-(kr5)*x[0]*x[4]
+    d2dt = -(kr1)*x[0]*x[1]
+    d3dt = (kr3)*x[0]*x[3]
+    d4dt = -(kr3+kr4)*x[0]*x[3]
+    d5dt = -(kr5)*x[0]*x[4]
+    d6dt = (kr1)*x[5]*x[6] - (kr2)*x[5]*x[6]
+    d7dt = (kr1)*x[5]*x[6] - (kr2)*x[5]*x[6]
+    d8dt = (kr3)*x[0]*x[3]
+    d9dt = (kr4)*x[0]*x[3]
+    d10dt = (kr5)*x[0]*x[4]
+    d11dt = (kr2)*x[5]*x[6]
     
     #print([dxpdt, dxcdt, dxldt, dxAPdt, dxBCdt, dxGasdt])
-    return [d1dt, d6dt, d8dt, d9dt, d10dt, d11dt]
+    return [d1dt, d2dt, d3dt, d4dt, d5dt, d6dt, d7dt, d8dt, d9dt, d10dt, d11dt]
 
 
 # linspace from t=0 to 7200s (120 minutes), 120 intervals
-t = np.linspace(0, 3600, 60)
+t = np.linspace(0, 120, 7200)
 
-# initial concentrations of glycine, imine, hydroxyacetic acid, acetic acid, methanamine, tetrahydropyridine (N-heterocycle) (replace below)
-x0 = [1, 1, 1, 0, 0, 0]
+# initial concentrations of glycine, hydrogen, water, ammonia, carbon dioxide, imine, diene, hydroxyacetic acid, acetic acid, methanamine, tetrahydropyridine (N-heterocycle) respectively 
+#Algae has between: 6-20% protein, 33-64% carbohydrate, and 11-21% lipid.
+
+#protein, carb, carb, protein, lipid, carb, lipid, carb, carb, protein, carb
+
+x0 = [5, 10, 10, 5, 12.5, 10, 12.5, 10, 10, 5, 10]
 concentration = odeint(HTL, x0, t)
 
-
 x1 = concentration[: , 0]
-x6 = concentration[: , 1]
-x8 = concentration[: , 2] 
-x9 = concentration[: , 3]
-x10 = concentration[: , 4]
-x11 = concentration[: , 5]
+x2 = concentration[: , 1]
+x3 = concentration[: , 2]
+x4 = concentration[: , 3]
+x5 = concentration[: , 4]
+x6 = concentration[: , 5]
+x7 = concentration[: , 6]
+x8 = concentration[: , 7] 
+x9 = concentration[: , 8]
+x10 = concentration[: , 9]
+x11 = concentration[: , 10]
 
 
 
 plt.plot(t, x1, label="glycine")
+plt.plot(t, x2, label="hydrogen")
+plt.plot(t, x3, label="water")
+plt.plot(t, x4, label="ammonia")
+plt.plot(t, x5, label="carbon dioxide")
 plt.plot(t, x6, label="imine")
+plt.plot(t, x7, label="diene")
 plt.plot(t, x8, label="hydroxyacetic acid")
 plt.plot(t, x9, label="acetic acid")
 plt.plot(t, x10, label="methanamine")
@@ -74,9 +89,9 @@ plt.plot(t, x11, label="tetrahydropyridine")
 plt.legend(bbox_to_anchor=(1.05,1), loc='upper left', borderaxespad=0.)
 
 plt.xlabel('time (min)')
-plt.xscale('symlog', linthreshx=60)
+plt.xscale('linear', linthreshx=60)
 
-plt.ylabel('concentration (M)')
+plt.ylabel('mole % (out of 100)')
 plt.yscale('symlog', linthreshy=1e-100)
 
 plt.title('Conc. vs. Time for HTL of Microalgae Components')
